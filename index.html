@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PromoPilot — Plataforma de Afiliados Inteligente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-logo">PP</div>
+          <div>
+            <h1>PromoPilot</h1>
+            <p>Afiliados Inteligente</p>
+          </div>
+        </div>
+
+        <nav class="menu" id="mainMenu">
+          <button class="menu-item active" data-view="dashboard">Dashboard</button>
+          <button class="menu-item" data-view="resolver">Resolver Link</button>
+          <button class="menu-item" data-view="produtos">Produtos</button>
+          <button class="menu-item" data-view="criativos">Criativos IA</button>
+          <button class="menu-item" data-view="campanhas">Campanhas</button>
+          <button class="menu-item" data-view="analytics">Analytics</button>
+          <button class="menu-item" data-view="agenda">Agenda</button>
+          <button class="menu-item" data-view="configuracoes">Configurações</button>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <h2 id="currentViewTitle">Dashboard</h2>
+            <p id="currentViewSubtitle">Visão geral do seu desempenho</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-ghost" id="simulateClicksBtn">Simular Cliques</button>
+            <button class="btn btn-primary" id="quickCampaignBtn">Nova Campanha</button>
+          </div>
+        </header>
+
+        <section class="view active" data-view="dashboard">
+          <div class="kpi-grid" id="kpiGrid"></div>
+
+          <div class="grid two">
+            <article class="card">
+              <h3>Top Produtos</h3>
+              <ul class="list" id="topProductsList"></ul>
+            </article>
+            <article class="card">
+              <h3>Últimas Campanhas</h3>
+              <ul class="list" id="latestCampaignsList"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view="resolver">
+          <article class="card">
+            <h3>Resolver Link de Afiliado</h3>
+            <p>Cole o link para detectar produto, preço, badge e desconto com fallback por texto/regex.</p>
+            <div class="inline-form">
+              <input id="affiliateUrlInput" type="url" placeholder="https://exemplo.com/produto/123" />
+              <button class="btn btn-primary" id="resolveUrlBtn">Resolver</button>
+            </div>
+            <label style="margin-top:10px;">
+              HTML/texto da página (opcional para extração avançada)
+              <textarea id="pageTextInput" rows="5" placeholder="Cole aqui trecho da página para melhorar a extração via regex/fallback."></textarea>
+            </label>
+          </article>
+          <div id="resolvedProductContainer" class="grid one"></div>
+        </section>
+
+        <section class="view" data-view="produtos">
+          <article class="card">
+            <h3>Gerenciar Produtos</h3>
+            <div class="filters">
+              <input id="productSearch" type="text" placeholder="Buscar por nome" />
+              <select id="commissionFilter">
+                <option value="all">Comissão (todas)</option>
+                <option value="high">Acima de 40%</option>
+                <option value="mid">Entre 20% e 40%</option>
+                <option value="low">Abaixo de 20%</option>
+              </select>
+              <select id="productSort">
+                <option value="score">Ordenar por score</option>
+                <option value="commission">Ordenar por comissão</option>
+                <option value="price">Ordenar por preço</option>
+              </select>
+            </div>
+          </article>
+          <div class="product-grid" id="productGrid"></div>
+        </section>
+
+        <section class="view" data-view="criativos">
+          <article class="card">
+            <h3>Gerador de Criativos IA</h3>
+            <div class="grid three">
+              <select id="creativeProductSelect"></select>
+              <select id="creativeChannel">
+                <option>Instagram</option>
+                <option>WhatsApp</option>
+                <option>TikTok</option>
+                <option>Email</option>
+              </select>
+              <select id="creativeTone">
+                <option>Urgente</option>
+                <option>Neutro</option>
+                <option>Premium</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="generateCreativeBtn">Gerar Copy</button>
+          </article>
+
+          <article class="card" id="creativeOutput">
+            <h3>Resultado</h3>
+            <p class="muted">Selecione os parâmetros e gere seu criativo.</p>
+          </article>
+        </section>
+
+        <section class="view" data-view="campanhas">
+          <article class="card">
+            <div class="row-between">
+              <h3>Campanhas</h3>
+              <button class="btn btn-primary" id="createCampaignBtn">Criar Campanha</button>
+            </div>
+            <div id="campaignList"></div>
+          </article>
+        </section>
+
+        <section class="view" data-view="analytics">
+          <div class="kpi-grid" id="analyticsKpis"></div>
+          <article class="card">
+            <h3>Desempenho por Produto</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>Cliques</th>
+                    <th>Conversão</th>
+                    <th>Receita Potencial</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody id="analyticsTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="view" data-view="agenda">
+          <article class="card">
+            <h3>Agendar Campanha</h3>
+            <div class="grid three">
+              <select id="scheduleCampaignSelect"></select>
+              <input type="date" id="scheduleDate" />
+              <button class="btn btn-primary" id="scheduleBtn">Agendar</button>
+            </div>
+          </article>
+          <article class="card">
+            <h3>Campanhas Agendadas</h3>
+            <ul class="list" id="scheduledList"></ul>
+          </article>
+        </section>
+
+        <section class="view" data-view="configuracoes">
+          <article class="card">
+            <h3>Configurações</h3>
+            <div class="form-grid">
+              <label>
+                Nome do Projeto
+                <input type="text" id="projectNameInput" />
+              </label>
+              <label>
+                Assinatura de CTA
+                <input type="text" id="ctaSignatureInput" placeholder="Ex: Garanta sua vaga hoje" />
+              </label>
+            </div>
+            <button class="btn btn-primary" id="saveSettingsBtn">Salvar Configurações</button>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
