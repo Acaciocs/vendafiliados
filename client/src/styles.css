@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.card {
+  @apply bg-white border border-slate-200 rounded-2xl shadow-sm p-5;
+}
+
+.label {
+  @apply text-sm text-slate-500;
+}
+
+.value {
+  @apply text-2xl font-bold text-slate-900;
+}
+
+.section-title {
+  @apply text-lg font-semibold text-slate-900 mb-4;
+}
+
+.input {
+  @apply w-full border border-slate-300 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand;
+}
+
+.btn-primary {
+  @apply px-4 py-2 rounded-xl bg-brand text-white font-medium shadow hover:opacity-95 disabled:opacity-50;
+}
