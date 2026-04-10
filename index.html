@@ -65,11 +65,15 @@
         <section class="view" data-view="resolver">
           <article class="card">
             <h3>Resolver Link de Afiliado</h3>
-            <p>Cole o link para simular extração de dados do produto.</p>
+            <p>Cole o link para detectar produto, preço, badge e desconto com fallback por texto/regex.</p>
             <div class="inline-form">
               <input id="affiliateUrlInput" type="url" placeholder="https://exemplo.com/produto/123" />
               <button class="btn btn-primary" id="resolveUrlBtn">Resolver</button>
             </div>
+            <label style="margin-top:10px;">
+              HTML/texto da página (opcional para extração avançada)
+              <textarea id="pageTextInput" rows="5" placeholder="Cole aqui trecho da página para melhorar a extração via regex/fallback."></textarea>
+            </label>
           </article>
           <div id="resolvedProductContainer" class="grid one"></div>
         </section>

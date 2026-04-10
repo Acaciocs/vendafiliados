@@ -280,6 +280,34 @@ function simulateResolvedProduct(url) {
   };
 }
 
+function detectPageType(url) {
+  let type = "product_page";
+  if (url.includes("/social/")) {
+    type = "social_page";
+  }
+  if (url.includes("mercadolivre") || url.includes("ml")) {
+    type = "marketplace_page";
+  }
+  return type;
+}
+
+function extractFromText(text) {
+  const cleanText = text || "";
+  const priceMatch = cleanText.match(/R\$\s?\d+[\.,]\d+/);
+  const oldPriceMatch = cleanText.match(/(?:de|por)\s*(R\$\s?\d+[\.,]\d+)/i);
+  const discountMatch = cleanText.match(/(\d{1,2})\s?%\s?(?:OFF|off|desconto)/);
+  const titleMatch = cleanText.match(/(?:^|\n)([A-ZÀ-Úa-zà-ú0-9\-\s]{8,80})(?:\n|$)/);
+  const badge = cleanText.toUpperCase().includes("MAIS VENDIDO") ? "MAIS VENDIDO" : null;
+
+  return {
+    name: titleMatch?.[1]?.trim() || null,
+    priceText: priceMatch?.[0] || null,
+    oldPriceText: oldPriceMatch?.[1] || null,
+    discount: discountMatch ? Number(discountMatch[1]) : null,
+    badge,
+  };
+}
+
 window.generateCopyForProduct = function generateCopyForProduct(productId) {
   switchView("criativos");
   document.querySelector('.menu-item[data-view="criativos"]').classList.add("active");
@@ -327,19 +355,52 @@ document.getElementById("mainMenu").addEventListener("click", (event) => {
 document.getElementById("resolveUrlBtn").addEventListener("click", () => {
   const url = document.getElementById("affiliateUrlInput").value.trim();
   if (!url) return showToast("Cole um link válido para continuar.");
+  const pageText = document.getElementById("pageTextInput").value.trim();
+  const pageType = detectPageType(url);
+  const extracted = extractFromText(pageText);
   const product = simulateResolvedProduct(url);
+
+  if (extracted.name) product.name = extracted.name;
+  if (extracted.priceText) {
+    const normalized = extracted.priceText.replace(/[R$\s]/g, "").replace(".", "").replace(",", ".");
+    const parsed = Number(normalized);
+    if (!Number.isNaN(parsed)) product.price = parsed;
+  }
+  if (extracted.badge) product.badge = extracted.badge;
+
+  const oldPrice = extracted.oldPriceText
+    ? Number(extracted.oldPriceText.replace(/[R$\s]/g, "").replace(".", "").replace(",", "."))
+    : null;
+  const discountAuto = extracted.discount || (oldPrice && product.price ? Math.round((1 - product.price / oldPrice) * 100) : null);
+
   document.getElementById("resolvedProductContainer").innerHTML = `
     <article class="card product-card">
       <img src="${product.image}" alt="${product.name}" />
       <h4>${product.name}</h4>
-      <p class="muted">${product.category}</p>
+      <p class="muted">${product.category} · tipo: ${pageType}</p>
       <div class="meta"><strong>${currency(product.price)}</strong><span>${product.commission}% comissão</span></div>
-      <span class="badge ok">${product.badge}</span>
+      <div class="meta">
+        <span class="badge ok">${product.badge}</span>
+        <span class="badge info">${discountAuto ? `${discountAuto}% OFF` : "Desconto não detectado"}</span>
+      </div>
+      <label style="margin-top:10px;">
+        Comissão não encontrada automaticamente? Digite a comissão (%)
+        <input type="number" min="1" max="100" id="resolvedCommissionInput" placeholder="Ex: 20" />
+      </label>
+      <p id="gainPreview" class="muted">💰 Ganho por venda: ${currency(product.price * (product.commission / 100))}</p>
       <div class="actions">
         <button class="btn btn-primary" id="addResolvedProductBtn">Adicionar Produto</button>
       </div>
     </article>
   `;
+
+  document.getElementById("resolvedCommissionInput").addEventListener("input", (event) => {
+    const customCommission = Number(event.target.value);
+    if (customCommission > 0 && customCommission <= 100) {
+      product.commission = customCommission;
+      document.getElementById("gainPreview").textContent = `💰 Ganho por venda: ${currency(product.price * (customCommission / 100))}`;
+    }
+  });
 
   document.getElementById("addResolvedProductBtn").addEventListener("click", () => {
     state.products.unshift(product);
@@ -361,11 +422,19 @@ document.getElementById("generateCreativeBtn").addEventListener("click", () => {
   const urgency = tone === "Urgente" ? "Últimas unidades" : tone === "Premium" ? "Oferta exclusiva" : "Aproveite com calma";
   const cta = `${state.settings.ctaSignature} (${channel})`;
 
+  const channelTemplates = {
+    Instagram: `🔥 ${product.badge} NO MERCADO!\n\n${product.name}\n\n💰 Por ${currency(product.price)}\n✔️ Excelente custo-benefício\n✔️ Produto em alta\n\n👉 ${cta}`,
+    WhatsApp: `🔥 Oferta top!\n\n${product.name}\n\nPor ${currency(product.price)}\n👉 Link: [seu link afiliado]\n${cta}`,
+    TikTok: `"Se você treina, olha isso..."\n"${product.name} por ${currency(product.price)}"\n"Tá muito barato agora"\n"Link na descrição"`,
+    Email: `Assunto: Oferta especial de ${product.name}\n\n${urgency}: ${product.name} com oportunidade de escala.\nPreço atual: ${currency(product.price)}.\n${cta}`,
+  };
+
   document.getElementById("creativeOutput").innerHTML = `
     <h3>Resultado</h3>
     <p><strong>Texto:</strong> ${urgency}: ${product.name} por ${currency(product.price)} com ${product.commission}% de comissão para afiliados.</p>
     <p><strong>CTA:</strong> ${cta}</p>
     <p><strong>Hashtags:</strong> #afiliados #marketingdigital #${channel.toLowerCase()} #promopilot</p>
+    <pre style="white-space:pre-wrap; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px;"><strong>Modelo ${channel}:</strong>\n${channelTemplates[channel]}</pre>
   `;
   showToast("Criativo gerado.");
 });
